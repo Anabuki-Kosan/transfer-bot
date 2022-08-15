@@ -2,6 +2,7 @@
 
 // node modules
 const bodyParser = require("body-parser");
+const cron = require('node-cron');
 const express = require("express");
 const server = express();
 
@@ -10,54 +11,101 @@ const SendToDepartment = require("./send-to-department");
 const SendToQuestioner = require("./send-to-questioner");
 const SendImageToDepartment = require("./send-image-to-department");
 const SendStickerToDepartment = require("./send-sticker-to-department");
+const shareSender = require("./share-sender");
+const goHome = require("./go-home-message");
+const startWork = require("./start-work-message");
+const checkHoliday = require("./check-holiday");
+
+
+// who send files
 const getJWT = require("./getJWT");
 const getServerToken = require("./get-server-token");
-
-// const RegEmail = /^([A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]{1,}\.[A-Za-z0-9]{1,})\n/;
-const RegEmail = /^([A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]{1,})\n/;
 
 server.use(bodyParser.json());
 server.listen(process.env.PORT || 3000);
 
 server.post("/callback", (req, res) => {
-  res.sendStatus(200);
 
-  // Content-Type
   const contentType = req.body.content.type
-  const roomId = req.body.source.roomId;
-  const accountId = req.body.source.accountId;
+  const channelId = req.body.source.channelId;
+  const accountId = req.body.source.userId;
 
   if (contentType === "text") {
     const messageText = req.body.content.text;
     getJWT(jwttoken => {
       getServerToken(jwttoken, newtoken => {
-        if (RegEmail.test(messageText)) {
-          const matchAccountId = messageText.match(/([A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]{1,})\n/);
-          const replaceAnswerMessage = messageText.replace(RegEmail, "");
-          SendToQuestioner(newtoken, matchAccountId[1], replaceAnswerMessage);
-        } else if (roomId !== process.env.LINE_IT_TALKROOMID) {
+        if(!channelId){
           SendToDepartment(messageText, newtoken, accountId);
+        } else {
+          const RegEmail = (/([A-Za-z0-9-]){36}\n/g)
+          const matchAccountId = messageText.match(/([A-Za-z0-9-]){36}/g);
+          const replaceAnswerMessage = messageText.replace(RegEmail, "");
+          SendToQuestioner(newtoken, matchAccountId, replaceAnswerMessage);
         }
       });
     });
   } else if (contentType === "sticker") {
     const stickerId = req.body.content.stickerId;
     const packageId = req.body.content.packageId;
+    const accountId = req.body.source.userId;
+
     getJWT(jwttoken => {
       getServerToken(jwttoken, newtoken => {
-        if (roomId !== process.env.LINE_IT_TALKROOMID) {
+        if (!channelId) {
           SendStickerToDepartment(newtoken, stickerId, packageId);
+          shareSender(newtoken, accountId, contentType);
         }
       });
     });
   } else if (contentType === "image") {
-    const resourceId = req.body.content.resourceId;
+    const fileId = req.body.content.fileId;
+    const accountId = req.body.source.userId;
     getJWT(jwttoken => {
       getServerToken(jwttoken, newtoken => {
-        if (roomId !== process.env.LINE_IT_TALKROOMID) {
-          SendImageToDepartment(newtoken, resourceId);
+        if (!channelId) {
+          SendImageToDepartment(newtoken, fileId);
+          shareSender(newtoken, accountId, contentType);
         }
       });
     });
+  } else if (contentType === "file") {
+    const fileId = req.body.content.fileId;
+    const accountId = req.body.source.userId;
+    getJWT(jwttoken => {
+      getServerToken(jwttoken, newtoken => {
+        if (!channelId) {
+          SendImageToDepartment(newtoken, fileId);
+          shareSender(newtoken, accountId, contentType);
+        }
+      });
+    });
+  }
+  res.sendStatus(200);
+});
+
+// 定時に特定のメッセージを送付する
+cron.schedule('0 0 18 * * 1-5', () => {
+  const action = checkHoliday();
+  if(action){
+    getJWT(jwttoken => {
+      getServerToken(jwttoken, newtoken => {
+        goHome(newtoken);
+      })
+  })} else{
+    console.log('祝日なので動かしません。')
+  }
+});
+
+
+// 定時に特定のメッセージを送付する 20220705修正*/
+cron.schedule('0 55 8 * * 1-5', () => {
+  const action = checkHoliday();
+  if(action){
+    getJWT(jwttoken => {
+      getServerToken(jwttoken, newtoken => {
+        startWork(newtoken);
+      })
+  })} else{
+    console.log('祝日なので動かしません。')
   }
 });

@@ -1,19 +1,16 @@
-module.exports = function sendStickerToDepartment(token, stickerId, packageId) {
-  const request = require("request");
-  const BOTNO = process.env.BOTNO;
-  const API_ID = process.env.APIID;
-  const CONSUMERKEY = process.env.CONSUMERKEY;
-  const ROOMID = process.env.LINE_IT_TALKROOMID;
+const request = require("request");
+const BOTNO = process.env.BOTID;
+const LINE_IT_TALKROOMID = process.env.LINE_IT_TALKROOMID;
 
+
+module.exports = function sendStickerToDepartment(token, stickerId, packageId) {
   const postData = {
-    url: "https://apis.worksmobile.com/" + API_ID + "/message/sendMessage/v2",
+    url: "https://www.worksapis.com/v1.0/bots/" + BOTNO + "/channels/" + LINE_IT_TALKROOMID + "/messages",
     headers: {
-      consumerKey: CONSUMERKEY,
+      "Content-Type": "application/json;charset=UTF-8",
       Authorization: "Bearer " + token
     },
     json: {
-      botNo: Number(BOTNO),
-      roomId: ROOMID,
       content: {
         type: "sticker",
         packageId: packageId,
@@ -21,13 +18,10 @@ module.exports = function sendStickerToDepartment(token, stickerId, packageId) {
       }
     }
   };
-  request.post(postData, (err, response, body) => {
-    if (body) {
-      console.log("your request body: ", body);
+  request.post(postData, (err) => {
+    if (err) {
+      console.log("Error AnswerMessage: ", err);
       return;
-    } else if (err) {
-        console.log("error messgage ", body);
-        return;
-      }
+    }
   });
 };

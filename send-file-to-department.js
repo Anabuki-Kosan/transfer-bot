@@ -1,6 +1,6 @@
 const request = require("request");
 
-module.exports = function sendIamgeToDepartment(token, fileId) {
+module.exports = function sendIamgeToDepartment(token, originalContentUrl) {
   const BOTNO = process.env.BOTID;
   const LINE_IT_TALKROOMID = process.env.LINE_IT_TALKROOMID;
 
@@ -12,8 +12,8 @@ module.exports = function sendIamgeToDepartment(token, fileId) {
     },
     json: {
       content: {
-        type: "image",
-        fileId	: fileId,
+        type: "file",
+        resourceId: originalContentUrl
       }
     }
   };

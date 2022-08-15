@@ -1,31 +1,46 @@
-module.exports = function sendToDepartment(messageText, token, accountId) {
-  const request = require("request");
-  const BOTNO = process.env.BOTNO;
-  const APIID = process.env.APIID;
-  const CONSUMERKEY = process.env.CONSUMERKEY;
+// module読み込み
+const request = require('request');
+const axios = require('axios');
 
-  const postData = {
-    url: "https://apis.worksmobile.com/" + APIID + "/message/sendMessage/v2",
+module.exports = async function sendToDepartment(messageText, token, accountId) {
+  const BOTNO = process.env.BOTID
+  const LINE_IT_TALKROOMID = process.env.LINE_IT_TALKROOMID
+
+  const postDataQuestion = {
+    url: "https://www.worksapis.com/v1.0/bots/" + BOTNO + "/channels/" + LINE_IT_TALKROOMID + "/messages",
     headers: {
-      consumerKey: CONSUMERKEY,
+      "Content-Type": "application/json;charset=UTF-8",
       Authorization: "Bearer " + token
     },
     json: {
-      botNo: Number(BOTNO),
-      roomId: process.env.LINE_IT_TALKROOMID,
       content: {
         type: "text",
-        text: "「" + messageText + "」\n" + accountId // 質問内容と質問者を記載する
+        text: await getAccountInfo()
       }
     }
   };
-  request.post(postData, (err, response, body) => {
+  request.post(postDataQuestion, (err) => {
     if (err) {
-      console.log("error send message: ", err);
+      console.log("Error AnswerMessage: ", err);
       return;
-    } else if (messageText === "利用開始") {
-      console.log('利用開始メッセージは送りません。')
-      process.exit(0);
     }
   });
-};
+  async function getAccountInfo() {
+    try {
+      const account = await axios({
+        method: 'get',
+        url: `https://www.worksapis.com/v1.0/users/${accountId}`,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + token
+        }
+      }).then((res) => {
+        return res.data
+      })
+      return "質問内容："+ "\n" + messageText + "\n\n" + "質問者ID：" + accountId  + "\n" + "質問者：" +  account.userName.lastName + account.userName.firstName + "\n" +　"所属部署：" + account.location
+    } catch (e) {
+      console.log(e)
+      return "Error"
+    }
+  }
+}

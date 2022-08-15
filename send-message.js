@@ -1,18 +1,14 @@
 module.exports = function sendMessage(token, accountId, message) {
     const request = require("request");
-    const BOTNO = process.env.BOTNO;
-    const CONSUMERKEY = process.env.CONSUMERKEY;
-    const API_ID = process.env.APIID;
-    
+
+    const BOTNO = process.env.BOTID;
     const postData = {
-        url = "https://apis.worksmobile.com/" + API_ID + "/message/sendMessage/v2",
+        url: "https://www.worksapis.com/v1.0/bots/" + BOTNO + "/users/" +  accountId + "/messages",
         headers: {
-            consumerKey: CONSUMERKEY,
-            Authorization: "Bearer " + token
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + token
         },
         json: {
-            botNo: Number(BOTNO),
-            accountId: accountId,
             content: {
                 type: "text",
                 text: message
@@ -26,4 +22,3 @@ module.exports = function sendMessage(token, accountId, message) {
         }
     })
   };
-  

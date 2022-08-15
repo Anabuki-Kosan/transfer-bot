@@ -1,20 +1,22 @@
 const request = require("request");
 
-module.exports = function getServerToken(jwttoken, callback) {
-    const APIID = process.env.APIID;
+module.exports = async function getServerToken(jwttoken, callback) {
     const postdata = {
-      url: "https://authapi.worksmobile.com/b/" + APIID + "/server/token",
+      url: "https://auth.worksmobile.com/oauth2/v2.0/token",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+        "Content-Type": "application/x-www-form-urlencoded"
       },
       form: {
+        assertion: jwttoken,
         grant_type: encodeURIComponent(
           "urn:ietf:params:oauth:grant-type:jwt-bearer"
         ),
-        assertion: jwttoken
+        client_id: process.env.ClientID,
+        client_secret: process.env.ClientSecret,
+        scope: "bot,user.read"
       }
     };
-    request.post(postdata, (error, response, body) => {
+    await request.post(postdata, (error, response, body) => {
       if (error) {
         console.log("Error getServerToken: ", error);
         callback(error);
