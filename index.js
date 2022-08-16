@@ -83,6 +83,12 @@ server.post("/callback", (req, res) => {
   res.sendStatus(200);
 });
 
+
+server.post("/garoon", (req) => {
+  console.log(req)
+})
+
+
 // 定時に特定のメッセージを送付する
 cron.schedule('0 0 18 * * 1-5', () => {
   const action = checkHoliday();
