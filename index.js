@@ -4,6 +4,7 @@
 const bodyParser = require("body-parser");
 const cron = require('node-cron');
 const express = require("express");
+const cors = require('cors')
 const server = express();
 
 // declared modules
@@ -21,14 +22,15 @@ const checkHoliday = require("./check-holiday");
 const getJWT = require("./getJWT");
 const getServerToken = require("./get-server-token");
 
+const corsOptions = {
+  origin: "*",
+  methods: ["GET", "POST"],
+  credentials: true,
+  origin: true,
+}
+
 server.use(bodyParser.json());
-server.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", '*');
-  res.header("Access-Control-Allow-Credentials", true);
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
-  next();
-});
+server.use(cors())
 server.listen(process.env.PORT || 3000);
 
 server.post("/callback", (req, res) => {
