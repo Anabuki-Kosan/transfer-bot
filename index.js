@@ -85,7 +85,7 @@ server.post("/callback", (req, res) => {
 
 
 server.post("/garoon", (req) => {
-  console.log(req.body)
+  console.log(req)
 })
 
 
