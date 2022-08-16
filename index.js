@@ -85,6 +85,7 @@ server.post("/callback", (req, res) => {
 
 
 server.post("/garoon", (req) => {
+  console.log(req)
   const messageText = req.body;
   const accountId = "ce9a29af-7b61-464e-1de9-04bb22d06597"
   getJWT(jwttoken => {
