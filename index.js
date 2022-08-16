@@ -26,7 +26,6 @@ const corsOptions = {
   origin: "*",
   methods: ["GET", "POST"],
   credentials: true,
-  origin: true,
 }
 
 server.use(bodyParser.json());
