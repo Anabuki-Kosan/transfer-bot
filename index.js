@@ -16,18 +16,12 @@ const shareSender = require("./share-sender");
 const goHome = require("./go-home-message");
 const startWork = require("./start-work-message");
 const checkHoliday = require("./check-holiday");
+const ReturnId = require("./return-id");
 
 
 // who send files
 const getJWT = require("./getJWT");
 const getServerToken = require("./get-server-token");
-
-const corsOptions = {
-  origin: "*",
-  methods: ["GET", "POST"],
-  credentials: true,
-}
-
 server.use(bodyParser.json());
 server.use(cors())
 server.listen(process.env.PORT || 3000);
@@ -38,7 +32,13 @@ server.post("/callback", (req, res) => {
   const channelId = req.body.source.channelId;
   const accountId = req.body.source.userId;
 
-  if (contentType === "text") {
+  if (contentType === "text" && req.body.content.text =="ID確認") {
+    getJWT(jwttoken => {
+      getServerToken(jwttoken, newtoken => {
+        ReturnId(newtoken, accountId);
+      });
+    });
+  } else if(contentType === "text"){
     const messageText = req.body.content.text;
     getJWT(jwttoken => {
       getServerToken(jwttoken, newtoken => {
